@@ -1,49 +1,34 @@
-blueprint:
-  name: Bewegung schaltet Switch mit Verzögerung
-  description: Schaltet einen Switch bei Bewegung ein und nach einstellbarer Zeit ohne Bewegung wieder aus
-  domain: automation
-
-  input:
-    motion_sensor:
-      name: Bewegungssensor
-      description: Binary Sensor für Bewegung
-      selector:
-        entity:
-          domain: binary_sensor
-
-    target_switch:
-      name: Switch
-      description: Switch, der geschaltet werden soll
-      selector:
-        entity:
-          domain: switch
-
-    off_delay:
-      name: Ausschaltverzögerung
-      description: Zeit in Sekunden ohne Bewegung, bevor der Switch ausgeschaltet wird
-      default: 30
-      selector:
-        number:
-          min: 1
-          max: 600
-          unit_of_measurement: Sekunden
-          mode: box
-
+alias: Flur Bewegung schaltet Switch (30s)
+description: Schaltet switch.flur_bewegung bei Bewegung ein und nach 30s ohne Bewegung aus
 mode: restart
 
 trigger:
   - platform: state
-    entity_id: !input motion_sensor
+    entity_id: binary_sensor.bewegungs_sensor_flur_emma_belegung
     to: "on"
 
   - platform: state
-    entity_id: !input motion_sensor
+    entity_id: binary_sensor.bewegungs_sensor_flur_emma_belegung
     to: "off"
     for:
-      seconds: !input off_delay
+      seconds: 30
 
 action:
   - choose:
       - conditions:
           - condition: state
-            entity_id: !_
+            entity_id: binary_sensor.bewegungs_sensor_flur_emma_belegung
+            state: "on"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: switch.flur_bewegung
+
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.bewegungs_sensor_flur_emma_belegung
+            state: "off"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: switch.flur_bewegung
