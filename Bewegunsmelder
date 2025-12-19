@@ -1,0 +1,60 @@
+blueprint:
+  name: Bewegung schaltet Switch mit Verzögerung
+  description: Schaltet einen Switch bei Bewegung ein und nach einstellbarer Zeit ohne Bewegung wieder aus
+  domain: automation
+
+  input:
+    motion_sensor:
+      name: Bewegungssensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+    target_switch:
+      name: Switch
+      selector:
+        entity:
+          domain: switch
+
+    off_delay:
+      name: Ausschaltverzögerung
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 600
+          unit_of_measurement: Sekunden
+          mode: slider
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id: !input motion_sensor
+    to: "on"
+
+  - platform: state
+    entity_id: !input motion_sensor
+    to: "off"
+    for:
+      seconds: !input off_delay
+
+action:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input motion_sensor
+            state: "on"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: !input target_switch
+
+      - conditions:
+          - condition: state
+            entity_id: !input motion_sensor
+            state: "off"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: !input target_switch
